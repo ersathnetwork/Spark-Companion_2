@@ -31,15 +31,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Add Capacitor Android Platform
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps
           npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
           npx cap add android
           npx cap sync android
+
+      - name: Accept Android SDK Licenses
+        run: |
+          mkdir -p $ANDROID_HOME/licenses || true
+          echo -e "24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f5187479451eabf01fb78af6dfcb131a6481e\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-license || true
 
       - name: Build Debug APK with Gradle
         working-directory: android
