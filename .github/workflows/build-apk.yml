@@ -33,14 +33,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK Licenses
         run: |
-          yes | sdkmanager --licenses || true
+          mkdir -p $ANDROID_HOME/licenses || true
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Setup & Sync Capacitor Android
         run: |
@@ -53,6 +50,15 @@ jobs:
           if [ ! -d "android" ]; then
             npx cap add android
           fi
+
+          # Ensure compileSdkVersion is stable Android 15 (API 35)
+          if [ -f "android/variables.gradle" ]; then
+            sed -i 's/compileSdkVersion = 36/compileSdkVersion = 35/g' android/variables.gradle
+            sed -i 's/targetSdkVersion = 36/targetSdkVersion = 35/g' android/variables.gradle
+          fi
+
+          # Set sdk.dir in local.properties
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
           # Sync web assets and plugins to android project
           npx cap sync android
