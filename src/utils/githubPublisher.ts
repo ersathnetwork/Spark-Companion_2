@@ -23,6 +23,7 @@ import islandTsx from '../components/AndroidDynamicIsland.tsx?raw';
 import mochiTsx from '../components/MochiCanvas.tsx?raw';
 import companionTsx from '../components/CoucouAndroidCompanion.tsx?raw';
 import workflowYml from '../../.github/workflows/build-apk.yml?raw';
+import capacitorConfigTs from '../../capacitor.config.ts?raw';
 
 export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoUrl: string; actionsUrl: string }> {
   const { token, repoName, isPrivate = false, onProgress = () => {} } = options;
@@ -103,6 +104,9 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
           preview: 'vite preview',
         },
         dependencies: {
+          '@capacitor/core': '^8.5.3',
+          '@capacitor/cli': '^8.5.3',
+          '@capacitor/android': '^8.5.3',
           '@google/genai': '^2.4.0',
           '@tailwindcss/vite': '^4.3.3',
           '@vitejs/plugin-react': '^6.1.1',
@@ -168,6 +172,7 @@ export default defineConfig(({ mode }) => {
     ),
 
     'index.html': indexHtml,
+    'capacitor.config.ts': capacitorConfigTs,
     '.github/workflows/build-apk.yml': workflowYml,
     'src/main.tsx': mainTsx,
     'src/index.css': indexCss,

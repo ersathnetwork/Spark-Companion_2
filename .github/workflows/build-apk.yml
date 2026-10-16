@@ -7,41 +7,55 @@ on:
 
 jobs:
   build:
-    name: Build Coucou Android APK with Capacitor
+    name: Build Coucou Android APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          npm ci || npm install --legacy-peer-deps
 
       - name: Build Web Application
-        run: npm run build
+        run: |
+          npm run build
 
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
-      - name: Add Capacitor Android Platform
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps
-          npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
-          npx cap add android
-          npx cap sync android
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK Licenses
         run: |
-          mkdir -p $ANDROID_HOME/licenses || true
-          echo -e "24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f5187479451eabf01fb78af6dfcb131a6481e\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-license || true
+          yes | sdkmanager --licenses || true
+
+      - name: Setup & Sync Capacitor Android
+        run: |
+          # If capacitor config does not exist, initialize it safely
+          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
+            npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
+          fi
+
+          # If android directory does not exist, add platform
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
+          # Sync web assets and plugins to android project
+          npx cap sync android
 
       - name: Build Debug APK with Gradle
         working-directory: android
@@ -54,4 +68,5 @@ jobs:
         with:
           name: Coucou-Android-Dynamic-Island-APK
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
           retention-days: 14
