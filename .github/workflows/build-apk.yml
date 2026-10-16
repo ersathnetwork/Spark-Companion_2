@@ -18,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -37,7 +36,7 @@ jobs:
 
       - name: Add Capacitor Android Platform
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android --save
+          npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps
           npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
           npx cap add android
           npx cap sync android

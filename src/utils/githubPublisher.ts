@@ -1,4 +1,4 @@
-// Helper to push project files to GitHub and trigger the Capacitor Android APK build for Coucou Dynamic Island
+// Helper to push all project files to GitHub and trigger the Capacitor Android APK build for Coucou Dynamic Island
 
 export interface PushProgressCallback {
   (step: string, percentage: number): void;
@@ -6,10 +6,23 @@ export interface PushProgressCallback {
 
 export interface PushOptions {
   token: string;
-  repoName: string; // e.g. "Coucou-Android" or "user/Coucou-Android"
+  repoName: string; // e.g. "Coucou-Android-Dynamic-Island" or "user/Coucou-Android-Dynamic-Island"
   isPrivate?: boolean;
   onProgress?: PushProgressCallback;
 }
+
+import indexHtml from '../../index.html?raw';
+import appTsx from '../App.tsx?raw';
+import mainTsx from '../main.tsx?raw';
+import indexCss from '../index.css?raw';
+import typesTs from '../types.ts?raw';
+import audioTs from './audio.ts?raw';
+import voiceTs from './voice.ts?raw';
+import geminiTs from './gemini.ts?raw';
+import islandTsx from '../components/AndroidDynamicIsland.tsx?raw';
+import mochiTsx from '../components/MochiCanvas.tsx?raw';
+import companionTsx from '../components/CoucouAndroidCompanion.tsx?raw';
+import workflowYml from '../../.github/workflows/build-apk.yml?raw';
 
 export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoUrl: string; actionsUrl: string }> {
   const { token, repoName, isPrivate = false, onProgress = () => {} } = options;
@@ -31,7 +44,7 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
   const userRes = await fetch('https://api.github.com/user', { headers });
   if (!userRes.ok) {
     const err = await userRes.json().catch(() => ({}));
-    throw new Error(`GitHub Authentication failed: ${err.message || userRes.statusText}. Ensure token has 'repo' permissions.`);
+    throw new Error(`GitHub Authentication failed: ${err.message || userRes.statusText}. Ensure your token has 'repo' permissions.`);
   }
   const userData = await userRes.json();
   const username = userData.login;
@@ -75,7 +88,7 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
 
   const defaultBranch = repoData.default_branch || 'main';
 
-  onProgress('Preparing Coucou Android project files...', 50);
+  onProgress('Preparing complete Coucou Android project files...', 50);
 
   const filesToCommit: Record<string, string> = {
     'package.json': JSON.stringify(
@@ -138,63 +151,34 @@ export default defineConfig(({ mode }) => {
 });
 `,
 
-    '.github/workflows/build-apk.yml': `name: Build Android APK (Coucou Dynamic Island)
+    'tsconfig.json': JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'ESNext',
+          moduleResolution: 'bundler',
+          jsx: 'react-jsx',
+          lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+          skipLibCheck: true,
+          noEmit: true,
+        },
+      },
+      null,
+      2
+    ),
 
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    name: Build Coucou Android APK with Capacitor
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Web Application
-        run: npm run build
-
-      - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Add Capacitor Android Platform
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android --save
-          npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
-          npx cap add android
-          npx cap sync android
-
-      - name: Build Debug APK with Gradle
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --no-daemon
-
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Coucou-Android-Dynamic-Island-APK
-          path: android/app/build/outputs/apk/debug/*.apk
-          retention-days: 14
-`,
+    'index.html': indexHtml,
+    '.github/workflows/build-apk.yml': workflowYml,
+    'src/main.tsx': mainTsx,
+    'src/index.css': indexCss,
+    'src/types.ts': typesTs,
+    'src/App.tsx': appTsx,
+    'src/components/AndroidDynamicIsland.tsx': islandTsx,
+    'src/components/MochiCanvas.tsx': mochiTsx,
+    'src/components/CoucouAndroidCompanion.tsx': companionTsx,
+    'src/utils/audio.ts': audioTs,
+    'src/utils/voice.ts': voiceTs,
+    'src/utils/gemini.ts': geminiTs,
 
     'README.md': `# Coucou: Android Notch Dynamic Island Companion
 A friendly companion living in your Android phone's punch-hole notch and Dynamic Island that keeps an eye on your AI coding agents: **Claude Code, Cursor, Codex, Gemini CLI, Antigravity**, and more.
