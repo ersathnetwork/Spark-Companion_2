@@ -1,0 +1,9 @@
+{
+  "name": "Spark Companion",
+  "description": "Interactive AI floating desktop & screen companion inspired by Spark, featuring Gemini multimodal screen vision, device function calling, and animated squish physics.",
+  "requestFramePermissions": [
+    "display-capture",
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
