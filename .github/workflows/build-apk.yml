@@ -1,4 +1,4 @@
-name: Build Android APK (Capacitor)
+name: Build Android APK (Coucou Dynamic Island)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK with Capacitor
+    name: Build Coucou Android APK with Capacitor
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: Add Capacitor Android Platform
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
-          npx cap init "Spark Companion" "com.spark.companion" --web-dir "dist"
+          npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
           npx cap add android
           npx cap sync android
 
@@ -51,6 +51,6 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Spark-Companion-Debug-APK
+          name: Coucou-Android-Dynamic-Island-APK
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14

@@ -1,4 +1,4 @@
-// Helper to push project files to GitHub and trigger the Capacitor Android APK build
+// Helper to push project files to GitHub and trigger the Capacitor Android APK build for Coucou Dynamic Island
 
 export interface PushProgressCallback {
   (step: string, percentage: number): void;
@@ -6,7 +6,7 @@ export interface PushProgressCallback {
 
 export interface PushOptions {
   token: string;
-  repoName: string; // e.g. "Spark-Companion" or "user/Spark-Companion"
+  repoName: string; // e.g. "Coucou-Android" or "user/Coucou-Android"
   isPrivate?: boolean;
   onProgress?: PushProgressCallback;
 }
@@ -58,7 +58,7 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
       headers,
       body: JSON.stringify({
         name: repo,
-        description: 'Spark Companion: Advanced Android Floating Companion with Gemini Vision & Actions',
+        description: 'Coucou Android: Notch Dynamic Island companion for AI coding agents with Fingerprint approvals',
         private: isPrivate,
         auto_init: true,
       }),
@@ -68,7 +68,6 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
       throw new Error(`Failed to create repository: ${err.message || createRes.statusText}`);
     }
     repoData = await createRes.json();
-    // Wait for GitHub to initialize default branch
     await new Promise((r) => setTimeout(r, 1500));
   } else {
     throw new Error(`Failed to access repository: ${repoCheckRes.statusText}`);
@@ -76,13 +75,12 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
 
   const defaultBranch = repoData.default_branch || 'main';
 
-  onProgress('Collecting project files...', 50);
+  onProgress('Preparing Coucou Android project files...', 50);
 
-  // Load project files using dynamic imports or static strings
   const filesToCommit: Record<string, string> = {
     'package.json': JSON.stringify(
       {
-        name: 'spark-companion',
+        name: 'coucou-android-dynamic-island',
         private: true,
         version: '1.0.0',
         type: 'module',
@@ -116,14 +114,16 @@ export async function pushProjectToGitHub(options: PushOptions): Promise<{ repoU
     'vite.config.ts': `import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '');
+  const apiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY || ''),
-      'process.env': process.env,
+      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
     },
     resolve: {
       alias: {
@@ -138,7 +138,7 @@ export default defineConfig(() => {
 });
 `,
 
-    '.github/workflows/build-apk.yml': `name: Build Android APK (Capacitor)
+    '.github/workflows/build-apk.yml': `name: Build Android APK (Coucou Dynamic Island)
 
 on:
   push:
@@ -147,7 +147,7 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK with Capacitor
+    name: Build Coucou Android APK with Capacitor
     runs-on: ubuntu-latest
 
     steps:
@@ -178,7 +178,7 @@ jobs:
       - name: Add Capacitor Android Platform
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
-          npx cap init "Spark Companion" "com.spark.companion" --web-dir "dist"
+          npx cap init "Coucou Android" "com.coucou.companion" --web-dir "dist"
           npx cap add android
           npx cap sync android
 
@@ -191,35 +191,38 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Spark-Companion-Debug-APK
+          name: Coucou-Android-Dynamic-Island-APK
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
 `,
 
-    'README.md': `# Spark: Advanced Android Floating Companion
-An open-source companion powered by **Google AI Studio (Gemini 2.5 Flash)** with:
-- **Always-on floating avatar** over other apps with drag gestures & squish physics.
-- **Multimodal Screen Vision** (takes screenshot and sends to Gemini to analyze your current screen).
-- **Native Device Function Calling** (battery level, flashlight on/off).
-- **Automated Cloud Build via GitHub Actions** (builds APK in the cloud without Android Studio!).
+    'README.md': `# Coucou: Android Notch Dynamic Island Companion
+A friendly companion living in your Android phone's punch-hole notch and Dynamic Island that keeps an eye on your AI coding agents: **Claude Code, Cursor, Codex, Gemini CLI, Antigravity**, and more.
 
-## How to Build the APK
-1. Every push to this repository triggers \`.github/workflows/build-apk.yml\`.
-2. Under the **Actions** tab, select the run and download **Spark-Companion-Debug-APK**.
-3. Install the APK on your phone, enter your Google AI Studio API key, and tap **Save & Spawn Companion**!
+## Features
+- **Android Center Punch-Hole / Notch Dynamic Island**: Pill expands with spring physics.
+- **Biometric Fingerprint Approvals**: Confirm dangerous shell commands or file changes right from the notch with simulated Android fingerprint scanner.
+- **Agent Monitor**: Live step ticker and progress counts.
+- **Gemini AI Voice & Chat (« OK Coucou »)**.
+- **Automated Cloud APK Build via GitHub Actions**.
+
+## How to Build the Android APK
+1. This repository includes \`.github/workflows/build-apk.yml\` configured with Capacitor.
+2. Every push automatically runs the GitHub Actions workflow on \`ubuntu-latest\`.
+3. Go to the **Actions** tab in this GitHub repository.
+4. Click on the latest workflow run and download **Coucou-Android-Dynamic-Island-APK**.
+5. Install \`app-debug.apk\` on your Android device!
 `,
   };
 
-  // Upload each file using the GitHub Contents API
   const fileEntries = Object.entries(filesToCommit);
   let completed = 0;
 
   for (const [filePath, content] of fileEntries) {
     completed++;
-    const percent = 50 + Math.floor((completed / fileEntries.length) * 40);
+    const percent = 50 + Math.floor((completed / fileEntries.length) * 45);
     onProgress(`Uploading ${filePath} (${completed}/${fileEntries.length})...`, percent);
 
-    // Check existing SHA
     let existingSha: string | undefined;
     const existingRes = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${defaultBranch}`,
@@ -230,14 +233,13 @@ An open-source companion powered by **Google AI Studio (Gemini 2.5 Flash)** with
       existingSha = data.sha;
     }
 
-    // UTF-8 to Base64 encoder for browser
     const base64Content = btoa(unescape(encodeURIComponent(content)));
 
     const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({
-        message: `Deploy Spark Companion: ${filePath}`,
+        message: `Deploy Coucou Android Dynamic Island: ${filePath}`,
         content: base64Content,
         branch: defaultBranch,
         ...(existingSha ? { sha: existingSha } : {}),
@@ -250,7 +252,7 @@ An open-source companion powered by **Google AI Studio (Gemini 2.5 Flash)** with
     }
   }
 
-  onProgress('Pushed successfully! Triggering GitHub Actions APK build...', 98);
+  onProgress('Pushed successfully! Triggering GitHub Actions APK build...', 100);
 
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const actionsUrl = `https://github.com/${owner}/${repo}/actions`;
